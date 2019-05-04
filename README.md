@@ -1,10 +1,10 @@
 # metagraph
 
-A Clojure library designed to ... well, that part is up to you.
+A Clojure library for metagraph data structure.
 
 ## Usage
 
-FIXME
+TODO
 
 ## License
 
