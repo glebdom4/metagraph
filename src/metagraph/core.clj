@@ -3,7 +3,7 @@
     metagraph.core
   (:require
    [metagraph.protocols :as pr]
-   [metagraph.help-functions :refer [get-class-name]]
+   [metagraph.help-functions :refer [get-class-name now]]
    [metagraph.graph :refer [make-vertex make-edge
                             make-fragment make-meta-vertex]]))
 
@@ -46,4 +46,15 @@
   "Removes a component from the metagraph (the output is a new meta-vertex)"
   [mv & components]
   (let [{mv-name :name frag :meta-fragment} mv ]
-   (make-meta-vertex mv-name (reduce #(pr/remove-from-fragment %2 %1) frag components)))
+   (make-meta-vertex mv-name (reduce #(pr/remove-from-fragment %2 %1) frag components))))
+
+(defn serialize
+  "Saves a metagraph component to an EDN file"
+  [component fout]
+  (let [file-name (str fout "-" (now) "-SNAPSHOT.edn")]
+    (spit file-name (prn-str component))))
+
+(defn deserialize
+  "Reads a metagraph component from a EDN file"
+  [fin]
+  (read-string (slurp fin)))
