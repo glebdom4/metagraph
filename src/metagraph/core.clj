@@ -1,7 +1,9 @@
 (ns ^{:doc "Graph operators"
       :author "Gleb Yeliseev"}
     metagraph.core
+  (:refer-clojure :exclude [+ -])
   (:require
+   [clojure.string :as str]
    [metagraph.protocols :as pr]
    [metagraph.help-functions :refer [get-class-name now]]
    [metagraph.graph :refer [make-vertex make-edge
@@ -40,13 +42,15 @@
   "Adds a component to the metagraph (the output is a new meta-vertex)"
   [mv-name & components]
   (let [frag (make-fragment #{} #{} #{})]
-    (make-meta-vertex mv-name (reduce #(pr/add-to-fragment %2 %1) frag components))))
+    (->> (reduce #(pr/add-to-fragment %2 %1 mv-name) frag components)
+      (make-meta-vertex mv-name))))
 
 (defn remove-components
   "Removes a component from the metagraph (the output is a new meta-vertex)"
-  [mv & components]
-  (let [{mv-name :name frag :meta-fragment} mv ]
-   (make-meta-vertex mv-name (reduce #(pr/remove-from-fragment %2 %1) frag components))))
+  [mv transitively & components]
+  (let [{mv-name :name frag :meta-fragment} mv
+        rm-func (if transitively pr/t-remove-from-fragment pr/remove-from-fragment)]
+    (make-meta-vertex mv-name (reduce #(rm-func %2 %1) frag components))))
 
 (defn serialize
   "Saves a metagraph component to an EDN file"
@@ -55,6 +59,14 @@
     (spit file-name (prn-str component))))
 
 (defn deserialize
-  "Reads a metagraph component from a EDN file"
+  "Reads a metagraph component from an EDN file"
   [fin]
   (read-string (slurp fin)))
+
+(def ++ make-edge)
+(def + add-components)
+(def - remove-components)
+
+(defmacro def-comp [func name & others]
+  (let [str-name (str name)]
+    `(def ~name (~func ~str-name ~@others))))
