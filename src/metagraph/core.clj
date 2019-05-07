@@ -4,8 +4,9 @@
   (:refer-clojure :exclude [+ -])
   (:require
    [clojure.string :as str]
+   [zprint.core :as zp]
    [metagraph.protocols :as pr]
-   [metagraph.help-functions :refer [get-class-name now]]
+   [metagraph.help-functions :as hf]
    [metagraph.graph :refer [make-vertex make-edge
                             make-fragment make-meta-vertex]]))
 
@@ -16,7 +17,7 @@
     (throw
      (IllegalArgumentException.
       (str "Attributes cannot be added to a component of the "
-           (get-class-name cmnt) " type.")))))
+           (hf/get-class-name cmnt) " type.")))))
 
 (defn add-attribute
   "Adds an attribute or attributes (name-value) to the component"
@@ -54,9 +55,11 @@
 
 (defn serialize
   "Saves a metagraph component to an EDN file"
-  [component fout]
-  (let [file-name (str fout "-" (now) "-SNAPSHOT.edn")]
-    (spit file-name (prn-str component))))
+  [component fout & {:keys [human-readable]}]
+  (let [file-name (str fout "-" (hf/now) "-SNAPSHOT.edn")]
+    (if human-readable
+      (spit file-name (zp/zprint-str component {:record {:hang? nil}}))
+      (spit file-name (prn-str component)))))
 
 (defn deserialize
   "Reads a metagraph component from an EDN file"
@@ -65,8 +68,9 @@
 
 (def ++ make-edge)
 (def + add-components)
-(def - remove-components)
+(def - (partial remove-components false))
+(def -* (partial remove-components true))
 
-(defmacro def-comp [func name & others]
+(defmacro def-v [func name & others]
   (let [str-name (str name)]
     `(def ~name (~func ~str-name ~@others))))

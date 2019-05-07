@@ -161,12 +161,12 @@
   (t-remove-from-fragment [this frag]
     (t-remove-vertex frag :meta-vertices this)))
 
-(defn make-vertex [name & {:keys [atrs] :or {atrs {}}}]
-  (Vertex. name atrs))
+(defn make-vertex [name & {:keys [attrs] :or {attrs {}}}]
+  (Vertex. name attrs))
 
 (defn make-edge
-  [start-vertex end-vertex & {:keys [atrs oriented] :or {atrs {} oriented false}}]
-  (Edge. start-vertex end-vertex atrs oriented))
+  [start-vertex end-vertex & {:keys [attrs oriented] :or {attrs {} oriented false}}]
+  (Edge. start-vertex end-vertex attrs oriented))
 
 (defn make-fragment [vertices meta-vertices edges]
   (do
@@ -174,9 +174,9 @@
     (let [has-oriented (boolean (some #(= (:oriented %) true) edges))]
       (MetagraphFragment. vertices meta-vertices edges has-oriented))))
 
-(defn make-meta-vertex [name meta-fragment & {:keys [atrs] :or {atrs {}}}]
+(defn make-meta-vertex [name meta-fragment & {:keys [attrs] :or {attrs {}}}]
   (if-not (:has-oriented-edges? meta-fragment)
-    (MetaVertex. name atrs meta-fragment)
+    (MetaVertex. name attrs meta-fragment)
     (throw
      (IllegalArgumentException.
       (str "A meta-vertex cannot contain a metagraph fragment "
